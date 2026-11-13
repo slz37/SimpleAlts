@@ -70,6 +70,7 @@ local function updateGear()
 
   data.warn  = data.warn or {}
   data.track = data.track or {}
+  data.ilvls = data.ilvls or {}
   for slotId = 1, 17 do
     local link = GetInventoryItemLink('player', slotId)
     local warn, track = scanItem(slotId, link)
@@ -77,6 +78,7 @@ local function updateGear()
     data.equip[slotId] = link
     data.warn[slotId]  = warn
     data.track[slotId] = track
+    data.ilvls[slotId] = link and (C_Item.GetDetailedItemLevelInfo(link))
   end
 
   simpleAlts.RefreshCol(fullName, 'gear')
@@ -169,6 +171,7 @@ local function initCharacter(_, isLogin, isReload)
       equip = {},
       vault = {},
       warn  = {},
+      ilvls = {},
     }
   end
 

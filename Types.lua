@@ -60,6 +60,7 @@
 ---@field track table<number, string>?
 ---@field vault table<string, any>
 ---@field raids table<string, any>?
+---@field ilvls table<string, any>
 
 ---@class GearIcon : Button
 ---@field link string?

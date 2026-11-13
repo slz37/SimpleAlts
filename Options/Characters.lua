@@ -211,8 +211,10 @@ local function refreshGear(Col)
 		Icon.link = link
 		if link then
 			local itemName = link:match('%[(.-)%]') or ''
+			local ilvl     = data.ilvls and data.ilvls[slotId]
+			local name     = itemName:gsub('%s*|A.-|a', ''):gsub('%s*|T.-|t', '')
 			Icon.Texture:SetTexture(select(5, C_Item.GetItemInfoInstant(link)))
-			Icon.Name:SetText((itemName:gsub('%s*|A.-|a', ''):gsub('%s*|T.-|t', '')))
+			Icon.Name:SetText(ilvl and ilvl > 0 and (name .. ' (' .. ilvl .. ')') or name)
 
 			local color = TRACK_COLORS[track and track[slotId]] or DEFAULT_COLOR
 			Icon.Name:SetTextColor(color[1], color[2], color[3])
