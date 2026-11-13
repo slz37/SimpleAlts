@@ -55,7 +55,7 @@ local function buildOptionsFrame(_, addonName)
 
 	-- Version text
 	local VersionText = OptionsFrame:CreateFontString()
-	VersionText:SetFontObject(fonts.subHeader)
+	VersionText:SetFontObject(fonts.subTitle)
 	VersionText:SetText(C_AddOns.GetAddOnMetadata(ADDON_NAME, 'Version'))
 	VersionText:SetPoint('BOTTOMLEFT', TitleText, 'BOTTOMRIGHT', 3, 3)
 

@@ -7,7 +7,7 @@ local EQUIPMENT_ORDER = {1, 2, 3, 15, 5, 9, 10, 6, 7, 8, 11, 12, 13, 14, 16, 17}
 
 local HEADER_H      = 28
 local CELL_H        = 20
-local GEAR_CELL_H   = 28
+local GEAR_CELL_H   = 24
 local PADDING       = 4
 local SEC_PAD       = 2
 local SEC_GAP       = 2
@@ -99,6 +99,7 @@ local function raidY(r, d)
 end
 
 ---@param parent Frame
+---@param font FontObject
 ---@param text string
 ---@param width number
 ---@param relativeTo Frame|FontString
@@ -107,9 +108,9 @@ end
 ---@param x number
 ---@param y number
 ---@return FontString
-local function addLabel(parent, text, width, relativeTo, point, relativePoint, x, y)
+local function addLabel(parent, font, text, width, relativeTo, point, relativePoint, x, y)
 	local label = parent:CreateFontString()
-	label:SetFontObject(fonts.body)
+	label:SetFontObject(font)
 	label:SetWidth(width)
 	label:SetPoint(point, relativeTo, relativePoint, x, y)
 	label:SetText(text)
@@ -122,7 +123,7 @@ end
 ---@param index number
 ---@return FontString
 local function addRowLabel(parent, text, index)
-	local label = addLabel(parent, text, LABEL_WIDTH - PADDING, parent, 'LEFT', 'TOPLEFT', PADDING, cellY(index))
+	local label = addLabel(parent, fonts.header, text, LABEL_WIDTH - PADDING, parent, 'LEFT', 'TOPLEFT', PADDING, cellY(index))
 	label:SetJustifyH('LEFT')
 	return label
 end
@@ -226,7 +227,7 @@ local function refreshGear(Col)
 		if warn and warn[slotId] then
 			Icon:SetBackdropBorderColor(1, 0, 0, 1)
 		else
-			Icon:SetBackdropBorderColor(0, 0, 0, 0)
+			Icon:SetBackdropBorderColor(0.5255, 1, 0.4667, 1)
 		end
 	end
 end
@@ -241,7 +242,6 @@ local function vaultSlot(key, level)
 		return tier[1], tier[2]
 	end
 
-	-- dungeons
 	if level <= 0 then return 'M', BLUE end
 	return tostring(level), level >= 10 and ORANGE or PINK
 end
@@ -369,16 +369,16 @@ function ColMixin:Init()
 	self.LeftArrow:SetScript('OnClick', onMoveLeft)
 	self.RightArrow = simpleAlts.CreateArrowButton(ICON_SIZE, Header, 'TOPRIGHT', Header, 'TOPRIGHT', -PADDING, -(HEADER_H - ICON_SIZE) / 2, 'RIGHT', 'Move Right')
 	self.RightArrow:SetScript('OnClick', onMoveRight)
-	self.Name = addLabel(Header, '', COL_WIDTH - (ICON_SIZE + PADDING * 2) * 2, Header, 'CENTER', 'TOP', 0, -HEADER_H / 2)
+	self.Name = addLabel(Header, fonts.header, '', COL_WIDTH - (ICON_SIZE + PADDING * 2) * 2, Header, 'CENTER', 'TOP', 0, -HEADER_H / 2)
 
 	-- Texts
-	self.ILvl         = addLabel(Gear, '', CELL_WIDTH, Gear, 'LEFT', 'TOPLEFT', PADDING, cellY(ILVL_ROW))
-	self.Gold         = addLabel(Gold, '', CELL_WIDTH, Gold, 'LEFT', 'TOPLEFT', PADDING, cellY(1))
+	self.ILvl         = addLabel(Gear, fonts.body, '', CELL_WIDTH, Gear, 'LEFT', 'TOPLEFT', PADDING, cellY(ILVL_ROW))
+	self.Gold         = addLabel(Gold, fonts.body, '', CELL_WIDTH, Gold, 'LEFT', 'TOPLEFT', PADDING, cellY(1))
 	self.vaultCells = {}
 	for line, key in ipairs(VAULT_KEYS) do
 		local cells = {}
 		for s = 1, 3 do
-			local Text = addLabel(Vault, '', VAULT_SLOT_W, Vault, 'LEFT', 'TOPLEFT', PADDING + (s - 1) * VAULT_SLOT_W, cellY(line))
+			local Text = addLabel(Vault, fonts.body, '', VAULT_SLOT_W, Vault, 'LEFT', 'TOPLEFT', PADDING + (s - 1) * VAULT_SLOT_W, cellY(line))
 			Text:SetJustifyH('CENTER')
 			if key == 'world' then
 				Text.Check = simpleAlts.CreateCheckTexture(Vault, 12, 'CENTER', Text, 'CENTER', 0, 0)
@@ -401,7 +401,7 @@ function ColMixin:Init()
 		Icon.Texture:SetPoint('BOTTOMRIGHT', -1, 1)
 		simpleAlts.CreateFlatBackdrop(Icon, 0, 0)
 
-		Icon.Name = addLabel(Icon, '', TEXT_WIDTH, Icon, 'LEFT', 'RIGHT', 4, 0)
+		Icon.Name = addLabel(Icon, fonts.body, '', TEXT_WIDTH, Icon, 'LEFT', 'RIGHT', 4, 0)
 		Icon.Name:SetJustifyH('LEFT')
 		Icon.Name:SetWordWrap(true)
 		Icon.Name:SetMaxLines(2)
@@ -477,7 +477,7 @@ function simpleAlts.LayoutLabelColumn(parent)
 
 	addRowLabel(Gear, 'ILvl', ILVL_ROW)
 	for i, slotId in ipairs(EQUIPMENT_ORDER) do
-		local label = addLabel(Gear, SLOT_NAMES[slotId], LABEL_WIDTH - PADDING, Gear, 'LEFT', 'TOPLEFT', PADDING, gearY(i))
+		local label = addLabel(Gear, fonts.header, SLOT_NAMES[slotId], LABEL_WIDTH - PADDING, Gear, 'LEFT', 'TOPLEFT', PADDING, gearY(i))
 		label:SetJustifyH('LEFT')
 	end
 	addRowLabel(Vault, 'Raid', 1)
@@ -509,7 +509,7 @@ function simpleAlts.LayoutTotalGold(parent, lastCol)
 	updateTotal()
 
 	TotalGold:ClearAllPoints()
-	TotalGold:SetPoint('TOPRIGHT', lastCol, 'BOTTOMRIGHT', -PADDING, -4)
+	TotalGold:SetPoint('TOPRIGHT', lastCol, 'BOTTOMRIGHT', -PADDING - 2.5, -4)
 end
 
 ---@param name string
@@ -553,7 +553,7 @@ function simpleAlts.ApplyRaidLayout()
 		for r, raid in ipairs(raidList) do
 			local label = labels[r]
 			if not label then
-				label = addLabel(Raids, '', LABEL_WIDTH - PADDING, Raids, 'LEFT', 'TOPLEFT', PADDING, raidY(r, 1))
+				label = addLabel(Raids, fonts.header, '', LABEL_WIDTH - PADDING, Raids, 'LEFT', 'TOPLEFT', PADDING, raidY(r, 1))
 				label:SetJustifyH('LEFT')
 				labels[r] = label
 			end
