@@ -10,6 +10,8 @@ local MIN_WIDTH      = 600
 local MIN_HEIGHT     = 400
 local MAX_WIDTH      = 1600
 local MAX_HEIGHT     = 900
+local SCROLL_SIZE    = 6
+local SCROLL_STEP    = 40
 
 ---@param addonName string
 local function buildOptionsFrame(_, addonName)
@@ -42,6 +44,7 @@ local function buildOptionsFrame(_, addonName)
 		SimpleAltsDB.OptionsFrame.w = w
 		SimpleAltsDB.OptionsFrame.h = h
 	end)
+	OptionsFrame:SetScript('OnShow', function() simpleAlts.RefreshAll() end)
 	OptionsFrame:Hide()
 
 	-- Title text
@@ -83,27 +86,77 @@ local function buildOptionsFrame(_, addonName)
 		SimpleAltsDB.OptionsFrame.y             = yOffset
 	end)
 
-	-- Header row
+	-- Scroll frame
+	local ScrollFrame = CreateFrame('ScrollFrame', nil, OptionsFrame)
+	ScrollFrame:SetPoint('TOPLEFT', OptionsFrame, 'TOPLEFT', 4, -40)
+	ScrollFrame:SetPoint('BOTTOMRIGHT', OptionsFrame, 'BOTTOMRIGHT', -(4 + SCROLL_SIZE + 2), 4 + SCROLL_SIZE + 2)
 
-	-- Character data rows
-	local sorted = {}
-	for name, data in pairs(SimpleAltsDB.characters) do sorted[#sorted + 1] = {name = name, data = data} end
-	table.sort(sorted, function(a, b) return a.data.index < b.data.index end)
+	local Content = CreateFrame('Frame', nil, ScrollFrame)
+	ScrollFrame:SetScrollChild(Content)
+	simpleAlts.ColParent = Content
 
-	local previous
-  for _, entry in ipairs(sorted) do
-    local Row = simpleAlts.AcquireRow(entry.name, entry.data)
+	-- Scroll bars
+	local VScroll = CreateFrame('Slider', nil, OptionsFrame)
+	VScroll:SetOrientation('VERTICAL')
+	VScroll:SetPoint('TOPRIGHT', OptionsFrame, 'TOPRIGHT', -4, -40)
+	VScroll:SetPoint('BOTTOMRIGHT', OptionsFrame, 'BOTTOMRIGHT', -4, 20)
+	VScroll:SetMinMaxValues(0, 0)
+	VScroll:SetValue(0)
+	simpleAlts.StyleScrollBar(VScroll, 'VERTICAL')
+	VScroll:GetThumbTexture():SetHeight(32)
+	VScroll:SetScript('OnValueChanged', function(_, value) ScrollFrame:SetVerticalScroll(value) end)
 
-    if previous then
-      Row:SetPoint('TOPLEFT', previous, 'BOTTOMLEFT', 0, -2)
-      Row:SetPoint('TOPRIGHT', previous, 'BOTTOMRIGHT', 0, -2)
-    else
-      Row:SetPoint('TOPLEFT', OptionsFrame, 'TOPLEFT', 4, -30)
-      Row:SetPoint('TOPRIGHT', OptionsFrame, 'TOPRIGHT', -4, -30)
-    end
-    Row:Show()
-    previous = Row
-  end
+	local HScroll = CreateFrame('Slider', nil, OptionsFrame)
+	HScroll:SetOrientation('HORIZONTAL')
+	HScroll:SetPoint('BOTTOMLEFT', OptionsFrame, 'BOTTOMLEFT', 4, 4)
+	HScroll:SetPoint('BOTTOMRIGHT', OptionsFrame, 'BOTTOMRIGHT', -20, 4)
+	HScroll:SetMinMaxValues(0, 0)
+	HScroll:SetValue(0)
+	simpleAlts.StyleScrollBar(HScroll, 'HORIZONTAL')
+	HScroll:SetScript('OnValueChanged', function(_, value) ScrollFrame:SetHorizontalScroll(value) end)
+
+	local contentWidth, contentHeight = 0, 0
+
+	-- Only runs when the window size or the content changes
+	local function updateScroll()
+		local maxX = math.max(0, contentWidth - ScrollFrame:GetWidth())
+		local maxY = math.max(0, contentHeight - ScrollFrame:GetHeight())
+		HScroll:SetMinMaxValues(0, maxX)
+		VScroll:SetMinMaxValues(0, maxY)
+		HScroll:SetShown(maxX > 0)
+		VScroll:SetShown(maxY > 0)
+	end
+	ScrollFrame:EnableMouseWheel(true)
+	ScrollFrame:SetScript('OnSizeChanged', updateScroll)
+	ScrollFrame:SetScript('OnMouseWheel', function(_, delta)
+		local Bar = IsShiftKeyDown() and HScroll or VScroll
+		Bar:SetValue(Bar:GetValue() - delta * SCROLL_STEP)
+	end)
+
+	local LabelColumn = simpleAlts.LayoutLabelColumn(Content)
+
+	function simpleAlts.LayoutCols()
+		simpleAlts.ApplyRaidLayout()
+
+		local sorted = {}
+		for name, data in pairs(SimpleAltsDB.characters) do sorted[#sorted + 1] = {name = name, data = data} end
+		table.sort(sorted, function(a, b) return a.data.index < b.data.index end)
+
+		local previous = LabelColumn
+		for _, entry in ipairs(sorted) do
+			local Col = simpleAlts.GetCol(entry.name) or simpleAlts.AcquireCol(entry.name, entry.data)
+			simpleAlts.PlaceColumn(Col, previous)
+			previous = Col
+		end
+
+		simpleAlts.LayoutTotalGold(Content, previous)
+
+		contentWidth, contentHeight = simpleAlts.GetLayoutSize(#sorted)
+		Content:SetSize(contentWidth, contentHeight)
+		updateScroll()
+	end
+
+	simpleAlts.LayoutCols()
 
 	function simpleAlts.ToggleOptions()
 		local isShown = OptionsFrame:IsShown()

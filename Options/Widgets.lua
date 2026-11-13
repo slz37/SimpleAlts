@@ -138,10 +138,10 @@ end
 ---@param relativePoint string
 ---@param xOffset number
 ---@param yOffset number
----@param pointsUp boolean
+---@param rotation string
 ---@param tooltipText string
 ---@return Button
-function simpleAlts.CreateArrowButton(size, Parent, anchorPoint, AnchorFrame, relativePoint, xOffset, yOffset, pointsUp, tooltipText)
+function simpleAlts.CreateArrowButton(size, Parent, anchorPoint, AnchorFrame, relativePoint, xOffset, yOffset, rotation, tooltipText)
 	local Button = CreateFrame('Button', nil, Parent)
 	Button:SetPoint(anchorPoint, AnchorFrame, relativePoint, xOffset, yOffset)
 	Button:SetSize(size, size)
@@ -150,7 +150,13 @@ function simpleAlts.CreateArrowButton(size, Parent, anchorPoint, AnchorFrame, re
 	Button.Texture:SetAllPoints()
 	Button.Texture:SetTexture('Interface\\AddOns\\SimpleAlts\\Media\\arrow.tga')
 	Button.Texture:SetVertexColor(1, 1, 1, 1)
-	if pointsUp then Button.Texture:SetRotation(math.rad(180)) end
+	if rotation == 'UP' then
+		Button.Texture:SetRotation(math.rad(180))
+	elseif rotation == 'LEFT' then
+		Button.Texture:SetRotation(math.rad(-90))
+	elseif rotation == 'RIGHT' then
+		Button.Texture:SetRotation(math.rad(90))
+	end
 
 	Button:SetScript('OnEnter', function(self)
 		self.Texture:SetVertexColor(colors.secondaryColor.r, colors.secondaryColor.g, colors.secondaryColor.b, 1)
@@ -175,9 +181,28 @@ function simpleAlts.CreateArrowButton(size, Parent, anchorPoint, AnchorFrame, re
 	return Button
 end
 
+---@param Parent Frame
+---@param size number
+---@param anchorPoint string
+---@param AnchorFrame Frame|FontString
+---@param relativePoint string
+---@param xOffset number
+---@param yOffset number
+---@return Texture
+function simpleAlts.CreateCheckTexture(Parent, size, anchorPoint, AnchorFrame, relativePoint, xOffset, yOffset)
+	local Check = Parent:CreateTexture(nil, 'OVERLAY')
+	Check:SetSize(size, size)
+	Check:SetPoint(anchorPoint, AnchorFrame, relativePoint, xOffset, yOffset)
+	Check:SetTexture('Interface\\AddOns\\SimpleAlts\\Media\\check.tga')
+	Check:SetVertexColor(0, 1, 0, 1)
+	Check:Hide()
+
+	return Check
+end
+
 --- @param ScrollFrame Frame|Slider
 --- @param orientation string?
---- @return Slider
+--- @return Slider|Frame
 function simpleAlts.StyleScrollBar(ScrollFrame, orientation)
   orientation = orientation or 'VERTICAL'
 

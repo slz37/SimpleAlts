@@ -1,6 +1,6 @@
 ## Interface: 120105
 ## Title: Simple Alts
-## Version: v0.0.1
+## Version: v1.0.0
 ## IconTexture: Interface\Icons\Inv_pet_cats_whitekitten
 ## Author: Cantabile
 ## SavedVariables: SimpleAltsDB

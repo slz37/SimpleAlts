@@ -1,9 +1,5 @@
 ---@alias Color table<string, number>
 ---@alias FontFlag string
----@alias CheckboxGetter fun(...): boolean
----@alias CheckboxSetter fun(...)
----@alias DropdownGetter fun(...): string
----@alias DropdownSetter fun(...)
 
 ---@class simpleAlts
 ---@field defaultFont string
@@ -13,6 +9,7 @@
 ---@field unitEventData table<string, any>
 ---@field unitFramePool table<string, any>
 ---@field OptionsFrame Frame
+---@field ColParent Frame
 ---@field ToggleMinimapButton fun()
 ---@field ToggleOptions fun()
 ---@field RegisterEventHandler fun(event: string, func: fun(...))
@@ -21,12 +18,21 @@
 ---@field CreateFlatBackdrop fun(Frame: Frame, bgAlpha: number?, borderAlpha: number?)
 ---@field CreateResizeButton fun(Parent: Frame): Button
 ---@field CreateXButton fun(size: number, Parent: Frame, anchorPoint: string, AnchorFrame: Frame, relativePoint: string, xOffset: number, yOffset: number, tooltipText: string?, onClick: fun()?): Button
----@field AcquireRow fun(name: string, data: table<string, any>): CharacterRow
----@field DeleteRow fun(name: string)
----@field CreateArrowButton fun(size: number, Parent: Frame, anchorPoint: string, AnchorFrame: Frame, relativePoint: string, xOffset: number, yOffset: number, pointsUp: boolean, tooltipText: string): Button
----@field StyleScrollBar fun(ScrollFrame: Frame|Slider, orientation: string?): Slider
+---@field CreateArrowButton fun(size: number, Parent: Frame, anchorPoint: string, AnchorFrame: Frame, relativePoint: string, xOffset: number, yOffset: number, rotation: string, tooltipText: string): Button
+---@field CreateCheckTexture fun(Parent: Frame, size: number, anchorPoint: string, AnchorFrame: Frame|FontString, relativePoint: string, xOffset: number, yOffset: number): Texture
+---@field StyleScrollBar fun(ScrollFrame: Frame|Slider, orientation: string?): Slider|Frame
 ---@field CreateScrollbar fun()
 ---@field CreateHorizontalScrollBar fun(name: string, Parent: Frame, Scroll: ScrollFrame, ScrollChild: Frame): HorizontalScrollBar
+---@field AcquireCol fun(name: string, data: CharacterData): CharacterCol
+---@field LayoutCols fun()
+---@field GetCol fun(name: string): CharacterCol?
+---@field RefreshCol fun(name: string, field: string)
+---@field RefreshAll fun()
+---@field PlaceColumn fun(Col: Frame, previous: Frame)
+---@field GetLayoutSize fun(numCols: number): number, number
+---@field LayoutLabelColumn fun(parent: Frame): Frame
+---@field LayoutTotalGold fun(parent: Frame, lastCol: Frame)
+---@field ApplyRaidLayout fun()
 
 ---@class EventFrame : Frame
 ---@field handlers table<string, any>
@@ -37,12 +43,49 @@
 ---@field BorderLeft Texture
 ---@field BorderRight Texture
 ---@field BorderBottom Texture
+---@field sections table<string, Frame>?
 ---@field SetBackdropColor fun(self: Frame, r: number, g: number, b: number, a: number)
 ---@field SetBackdropBorderColor fun(self: Frame, r: number, g: number, b: number, a: number)
 
----@class CharacterRow : Frame
+---@class FontString
+---@field Check Texture
+
+---@class CharacterData
+---@field name string?
+---@field index number
+---@field ilvl number
+---@field gold number
+---@field equip table<number, string>
+---@field warn table<number, boolean>?
+---@field track table<number, string>?
+---@field vault table<string, any>
+---@field raids table<string, any>?
+
+---@class GearIcon : Button
+---@field link string?
+---@field Texture Texture
+---@field Name FontString
+
+---@class CharacterCol : Frame
 ---@field name string
----@field data table<string, any>
+---@field data CharacterData
+---@field initialized boolean?
+---@field sections table<string, Frame>
+---@field Name FontString
+---@field LeftArrow Button
+---@field RightArrow Button
+---@field ILvl FontString
+---@field Gold FontString
+---@field vaultCells table<string, any>
+---@field icons table<number, GearIcon>
+---@field boxes table<number, table<number, Texture[]>>?
+---@field Init fun(self: CharacterCol)
 
 ---@class HorizontalScrollBar : Slider
 ---@field updateScrollBar fun(self: HorizontalScrollBar)
+
+---@class NineSlicePanel : Frame
+---@field SetBorderColor fun(self: NineSlicePanel, r: number, g: number, b: number, a: number?)
+
+---@class GameTooltip
+---@field NineSlice NineSlicePanel?

@@ -17,5 +17,8 @@
   ],
   "Lua.diagnostics.disable": [
     "assign-type-mismatch"
+  ],
+  "Lua.diagnostics.globals": [
+    "REFRESH"
   ]
 }
