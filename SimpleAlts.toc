@@ -1,0 +1,19 @@
+## Interface: 120105
+## Title: Simple Alts
+## Version: v0.0.1
+## IconTexture: Interface\Icons\Inv_pet_cats_whitekitten
+## Author: Cantabile
+## SavedVariables: SimpleAltsDB
+
+# Core
+libs.xml
+Migration.lua
+SimpleAlts.lua
+Character.lua
+
+# Options
+Options\Colors.lua
+Options\Fonts.lua
+Options\Widgets.lua
+Options\Characters.lua
+Options\Options.lua
