@@ -259,14 +259,14 @@ local function refreshVault(Col)
 
 			if key == 'world' then
 				Text.Check:SetShown(done)
-				Text:SetText(done and '' or '-')
+				Text:SetText(done and '' or '—')
 				Text:SetTextColor(DASH_COLOR[1], DASH_COLOR[2], DASH_COLOR[3])
 			elseif done then
 				local label, c = vaultSlot(key, level)
 				Text:SetText(label)
 				Text:SetTextColor(c[1], c[2], c[3])
 			else
-				Text:SetText('-')
+				Text:SetText('—')
 				Text:SetTextColor(DASH_COLOR[1], DASH_COLOR[2], DASH_COLOR[3])
 			end
 		end
