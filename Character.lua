@@ -71,6 +71,8 @@ local function updateGear()
   data.warn  = data.warn or {}
   data.track = data.track or {}
   data.ilvls = data.ilvls or {}
+  data.ilvl  = select(2, GetAverageItemLevel())
+
   for slotId = 1, 17 do
     local link = GetInventoryItemLink('player', slotId)
     local warn, track = scanItem(slotId, link)
