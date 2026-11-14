@@ -68,22 +68,25 @@ end
 local function updateGear()
   if not data then return end
 
-  data.warn  = data.warn or {}
-  data.track = data.track or {}
-  data.ilvls = data.ilvls or {}
-  data.ilvl  = select(2, GetAverageItemLevel())
+  -- Delay until api reflects changes
+  C_Timer.After(0.1, function()
+    data.warn  = data.warn or {}
+    data.track = data.track or {}
+    data.ilvls = data.ilvls or {}
+    data.ilvl  = select(2, GetAverageItemLevel())
 
-  for slotId = 1, 17 do
-    local link = GetInventoryItemLink('player', slotId)
-    local warn, track = scanItem(slotId, link)
+    for slotId = 1, 17 do
+      local link = GetInventoryItemLink('player', slotId)
+      local warn, track = scanItem(slotId, link)
 
-    data.equip[slotId] = link
-    data.warn[slotId]  = warn
-    data.track[slotId] = track
-    data.ilvls[slotId] = link and (C_Item.GetDetailedItemLevelInfo(link))
-  end
+      data.equip[slotId] = link
+      data.warn[slotId]  = warn
+      data.track[slotId] = track
+      data.ilvls[slotId] = link and (C_Item.GetDetailedItemLevelInfo(link))
+    end
 
-  simpleAlts.RefreshCol(fullName, 'gear')
+    simpleAlts.RefreshCol(fullName, 'gear')
+  end)
 end
 
 local function updateVault()
