@@ -76,29 +76,26 @@ local function formatMoney(copper)
 	return string.format(COIN_FORMAT, math.floor(copper / 10000), math.floor(copper / 100) % 100, copper % 100)
 end
 
--- Vertical center of a CELL_H line, relative to its section's top
 ---@param index number
 ---@return number
 local function cellY(index)
 	return -(SEC_PAD + (index - 1) * CELL_H + CELL_H / 2)
 end
 
--- Vertical center of the i-th gear slot line, below the ILvl line
----@param i number
+---@param index number
 ---@return number
-local function gearY(i)
-	return -(SEC_PAD + CELL_H + (i - 1) * GEAR_CELL_H + GEAR_CELL_H / 2)
+local function gearY(index)
+	return -(SEC_PAD + CELL_H + (index - 1) * GEAR_CELL_H + GEAR_CELL_H / 2)
 end
 
--- Vertical center of a raid's heroic (d = 1) or mythic (d = 2) line, relative to the Raids section
----@param r number
----@param d number
+---@param raidIndex number
+---@param diffIndex number
 ---@return number
-local function raidY(r, d)
-	return -(SEC_PAD + (r - 1) * RAID_BLOCK + CELL_H / 2 + (d - 1) * (BOX_SIZE + 1))
+local function raidY(raidIndex, diffIndex)
+	return -(SEC_PAD + (raidIndex - 1) * RAID_BLOCK + CELL_H / 2 + (diffIndex - 1) * (BOX_SIZE + 1))
 end
 
----@param parent Frame
+---@param Parent Frame
 ---@param font FontObject
 ---@param text string
 ---@param width number
@@ -108,8 +105,8 @@ end
 ---@param x number
 ---@param y number
 ---@return FontString
-local function addLabel(parent, font, text, width, relativeTo, point, relativePoint, x, y)
-	local label = parent:CreateFontString()
+local function addLabel(Parent, font, text, width, relativeTo, point, relativePoint, x, y)
+	local label = Parent:CreateFontString()
 	label:SetFontObject(font)
 	label:SetWidth(width)
 	label:SetPoint(point, relativeTo, relativePoint, x, y)
@@ -118,12 +115,12 @@ local function addLabel(parent, font, text, width, relativeTo, point, relativePo
 	return label
 end
 
----@param parent Frame
+---@param Parent Frame
 ---@param text string
 ---@param index number
 ---@return FontString
-local function addRowLabel(parent, text, index)
-	local label = addLabel(parent, fonts.header, text, LABEL_WIDTH - PADDING, parent, 'LEFT', 'TOPLEFT', PADDING, cellY(index))
+local function addRowLabel(Parent, text, index)
+	local label = addLabel(Parent, fonts.header, text, LABEL_WIDTH - PADDING, Parent, 'LEFT', 'TOPLEFT', PADDING, cellY(index))
 	label:SetJustifyH('LEFT')
 	return label
 end
@@ -149,38 +146,38 @@ local function sectionHeight(key)
 	return FIXED_HEIGHTS[key]
 end
 
----@param parent Frame
+---@param Parent Frame
 ---@param noBackdrop boolean?
-local function createSections(parent, noBackdrop)
-	parent.sections = {}
+local function createSections(Parent, noBackdrop)
+	Parent.sections = {}
 	local previous
 	for _, key in ipairs(SECTION_ORDER) do
-		local Section = CreateFrame('Frame', nil, parent)
+		local Section = CreateFrame('Frame', nil, Parent)
 		if not noBackdrop then simpleAlts.CreateFlatBackdrop(Section, 0.8, 1) end
 
 		if previous then
 			Section:SetPoint('TOPLEFT', previous, 'BOTTOMLEFT', 0, -SEC_GAP)
 			Section:SetPoint('TOPRIGHT', previous, 'BOTTOMRIGHT', 0, -SEC_GAP)
 		else
-			Section:SetPoint('TOPLEFT', parent, 'TOPLEFT', 0, 0)
-			Section:SetPoint('TOPRIGHT', parent, 'TOPRIGHT', 0, 0)
+			Section:SetPoint('TOPLEFT', Parent, 'TOPLEFT', 0, 0)
+			Section:SetPoint('TOPRIGHT', Parent, 'TOPRIGHT', 0, 0)
 		end
 
-		parent.sections[key] = Section
+		Parent.sections[key] = Section
 		previous = Section
 	end
 end
 
----@param parent Frame
+---@param Parent Frame
 ---@return number
-local function applyHeights(parent)
+local function applyHeights(Parent)
 	local total = 0
 	for i, key in ipairs(SECTION_ORDER) do
 		local h = sectionHeight(key)
-		parent.sections[key]:SetHeight(h)
+		Parent.sections[key]:SetHeight(h)
 		total = total + h + (i > 1 and SEC_GAP or 0)
 	end
-	parent:SetHeight(total)
+	Parent:SetHeight(total)
 	return total
 end
 
@@ -293,29 +290,29 @@ local function refreshRaids(Col)
 	local Raids    = Col.sections.Raids
 
 	Col.boxes = Col.boxes or {}
-	for r, raid in ipairs(raidList) do
-		Col.boxes[r] = Col.boxes[r] or {}
+	for raidIndex, raid in ipairs(raidList) do
+		Col.boxes[raidIndex] = Col.boxes[raidIndex] or {}
 		local byRaid = saved and (saved[raid.name] or saved[raid.mapID])
 
-		for d, diff in ipairs(RAID_DIFFS) do
-			local boxes = Col.boxes[r][d] or {}
-			Col.boxes[r][d] = boxes
+		for diffIndex, diff in ipairs(RAID_DIFFS) do
+			local boxes = Col.boxes[raidIndex][diffIndex] or {}
+			Col.boxes[raidIndex][diffIndex] = boxes
 			local kills = getKills(byRaid, diff.ids, now)
 
-			for k = 1, raid.bosses do
-				local Box = boxes[k]
+			for bossIndex = 1, raid.bosses do
+				local Box = boxes[bossIndex]
 				if not Box then
 					Box = Raids:CreateTexture(nil, 'ARTWORK')
 					Box:SetSize(BOX_SIZE, BOX_SIZE)
-					Box:SetPoint('LEFT', Raids, 'TOPLEFT', PADDING + (k - 1) * (BOX_SIZE + BOX_GAP), raidY(r, d))
-					boxes[k] = Box
+					Box:SetPoint('LEFT', Raids, 'TOPLEFT', PADDING + (bossIndex - 1) * (BOX_SIZE + BOX_GAP), raidY(raidIndex, diffIndex))
+					boxes[bossIndex] = Box
 				end
 
-				local c = kills and kills[k] and diff.color or EMPTY_BOX
+				local c = kills and kills[bossIndex] and diff.color or EMPTY_BOX
 				Box:SetColorTexture(c[1], c[2], c[3], 1)
 				Box:Show()
 			end
-			for k = raid.bosses + 1, #boxes do boxes[k]:Hide() end
+			for bossIndex = raid.bosses + 1, #boxes do boxes[bossIndex]:Hide() end
 		end
 	end
 
@@ -462,14 +459,14 @@ function simpleAlts.GetLayoutSize(numCols)
 	return LABEL_WIDTH + numCols * (COL_WIDTH + COL_GAP), colHeight + TOTAL_HEIGHT
 end
 
----@param parent Frame
+---@param Parent Frame
 ---@return Frame
-function simpleAlts.LayoutLabelColumn(parent)
+function simpleAlts.LayoutLabelColumn(Parent)
 	if LabelColumn then return LabelColumn end
 
-	LabelColumn = CreateFrame('Frame', nil, parent)
+	LabelColumn = CreateFrame('Frame', nil, Parent)
 	LabelColumn:SetWidth(LABEL_WIDTH)
-	LabelColumn:SetPoint('TOPLEFT', parent, 'TOPLEFT', 0, 0)
+	LabelColumn:SetPoint('TOPLEFT', Parent, 'TOPLEFT', 0, 0)
 	createSections(LabelColumn, true)
 	colHeight = applyHeights(LabelColumn)
 
@@ -496,24 +493,24 @@ local function updateTotal()
 	TotalGold:SetText(formatMoney(total))
 end
 
----@param parent Frame
----@param lastCol Frame
-function simpleAlts.LayoutTotalGold(parent, lastCol)
+---@param Parent Frame
+---@param FirstCol Frame
+function simpleAlts.LayoutTotalGold(Parent, FirstCol)
 	if not TotalGold then
-		TotalGold = parent:CreateFontString()
+		TotalGold = Parent:CreateFontString()
 		TotalGold:SetFontObject(fonts.body)
 		TotalGold:SetWidth(CELL_WIDTH)
-		TotalGold:SetJustifyH('RIGHT')
+		TotalGold:SetJustifyH('LEFT')
 	end
 
 	updateTotal()
 
 	TotalGold:ClearAllPoints()
-	TotalGold:SetPoint('TOPRIGHT', lastCol, 'BOTTOMRIGHT', -PADDING - 2.5, -4)
+	TotalGold:SetPoint('TOPLEFT', FirstCol, 'BOTTOMLEFT', -2, -4)
 end
 
 ---@param name string
----@param field 'gold'|'gear'|'vault'|'raids'
+---@param field string
 function simpleAlts.RefreshCol(name, field)
 	local Col = cols[name]
 	if not Col or not Col:IsVisible() then return end
@@ -550,17 +547,17 @@ function simpleAlts.ApplyRaidLayout()
 		local labels = LabelColumn.raidLabels or {}
 		LabelColumn.raidLabels = labels
 
-		for r, raid in ipairs(raidList) do
-			local label = labels[r]
+		for raidIndex, raid in ipairs(raidList) do
+			local label = labels[raidIndex]
 			if not label then
-				label = addLabel(Raids, fonts.header, '', LABEL_WIDTH - PADDING, Raids, 'LEFT', 'TOPLEFT', PADDING, raidY(r, 1))
+				label = addLabel(Raids, fonts.header, '', LABEL_WIDTH - PADDING, Raids, 'LEFT', 'TOPLEFT', PADDING, raidY(raidIndex, 1))
 				label:SetJustifyH('LEFT')
-				labels[r] = label
+				labels[raidIndex] = label
 			end
 			label:SetText(abbreviate(raid.name))
 			label:Show()
 		end
-		for r = #raidList + 1, #labels do labels[r]:Hide() end
+		for raidIndex = #raidList + 1, #labels do labels[raidIndex]:Hide() end
 	end
 
 	for _, Col in pairs(cols) do

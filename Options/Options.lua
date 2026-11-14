@@ -142,14 +142,16 @@ local function buildOptionsFrame(_, addonName)
 		for name, data in pairs(SimpleAltsDB.characters) do sorted[#sorted + 1] = {name = name, data = data} end
 		table.sort(sorted, function(a, b) return a.data.index < b.data.index end)
 
-		local previous = LabelColumn
+		local FirstCol
+		local PreviousCol = LabelColumn
 		for _, entry in ipairs(sorted) do
 			local Col = simpleAlts.GetCol(entry.name) or simpleAlts.AcquireCol(entry.name, entry.data)
-			simpleAlts.PlaceColumn(Col, previous)
-			previous = Col
+			simpleAlts.PlaceColumn(Col, PreviousCol)
+			FirstCol    = FirstCol or Col
+			PreviousCol = Col
 		end
 
-		simpleAlts.LayoutTotalGold(Content, previous)
+		simpleAlts.LayoutTotalGold(Content, FirstCol)
 
 		contentWidth, contentHeight = simpleAlts.GetLayoutSize(#sorted)
 		Content:SetSize(contentWidth, contentHeight)

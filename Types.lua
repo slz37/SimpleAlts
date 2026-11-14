@@ -30,8 +30,8 @@
 ---@field RefreshAll fun()
 ---@field PlaceColumn fun(Col: Frame, previous: Frame)
 ---@field GetLayoutSize fun(numCols: number): number, number
----@field LayoutLabelColumn fun(parent: Frame): Frame
----@field LayoutTotalGold fun(parent: Frame, lastCol: Frame)
+---@field LayoutLabelColumn fun(Parent: Frame): Frame
+---@field LayoutTotalGold fun(Parent: Frame, FirstCol: Frame)
 ---@field ApplyRaidLayout fun()
 
 ---@class EventFrame : Frame
