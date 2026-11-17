@@ -6,31 +6,12 @@ local currentVersion = C_AddOns.GetAddOnMetadata(ADDON_NAME, 'Version')
 local DB_DEFAULTS = {
   version      = currentVersion,
   numChars     = 0,
+  nextRest     = GetServerTime() + C_DateAndTime.GetSecondsUntilWeeklyReset(),
   characters   = {},
   blacklist    = {},
   OptionsFrame = {},
   minimap      = {isVisible = true},
 }
-
- --[[
-  enabled            = true,
-  version            = currentVersion,
-  guildMajority      = true,
-  pushUninstanced    = false,
-  useFakeRoster      = false,
-  noteFormat         = 'always',
-  forceNote          = false,
-  minimap            = {isVisible = true},
-  forceNoteName      = '',
-  notes              = {},
-  inactiveNotes      = {},
-  blacklist          = {},
-  OptionsFrame       = {},
-  HelpFrame          = {},
-  fakeRosters        = {},
-  bossOrder          = {},
-  selectedFakeRoster = 'Default',
-  ]]
 
 local function initiateMissingValues()
   for key, value in pairs(DB_DEFAULTS) do

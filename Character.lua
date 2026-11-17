@@ -150,6 +150,17 @@ local function updateRaidList()
   end
 end
 
+local function checkWeeklyReset()
+  local now = GetServerTime()
+  if SimpleAltsDB.nextReset and now >= SimpleAltsDB.nextReset then
+    for _, char in pairs(SimpleAltsDB.characters) do
+      char.vault = {}
+      char.raids = {}
+    end
+  end
+  SimpleAltsDB.nextReset = now + C_DateAndTime.GetSecondsUntilWeeklyReset()
+end
+
 ---@param isLogin boolean
 ---@param isReload boolean
 local function initCharacter(_, isLogin, isReload)
@@ -172,12 +183,14 @@ local function initCharacter(_, isLogin, isReload)
       gold  = 0,
       equip = {},
       vault = {},
+      raids = {},
       warn  = {},
       ilvls = {},
     }
   end
 
   data = SimpleAltsDB.characters[fullName]
+  checkWeeklyReset()
 
   updateGold()
   updateGear()
