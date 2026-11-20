@@ -61,6 +61,7 @@
 ---@field vault table<string, any>
 ---@field raids table<string, any>?
 ---@field ilvls table<string, any>
+---@field currencies table<number, table<string, any>>?
 
 ---@class GearIcon : Button
 ---@field link string?
@@ -80,6 +81,7 @@
 ---@field vaultCells table<string, any>
 ---@field icons table<number, GearIcon>
 ---@field boxes table<number, table<number, Texture[]>>?
+---@field currencyCells table<number, FontString>
 ---@field Init fun(self: CharacterCol)
 
 ---@class HorizontalScrollBar : Slider

@@ -35,13 +35,20 @@ local RAID_DIFFS    = {
 	{ids = {15},      color = {1.00, 0.30, 1.00}},
 	{ids = {16, 233}, color = {1.00, 0.50, 0.00}},
 }
+local CURRENCY_ROWS = {
+	{3418, 3509},
+	{3442, 3443},
+	{3444, 3445},
+	{3446},
+}
+local GOLD_LINE = #CURRENCY_ROWS + 1
 
 local SECTION_ORDER = {'Header', 'Gear', 'Vault', 'Raids', 'Gold'}
 local FIXED_HEIGHTS = {
 	Header = HEADER_H,
 	Gear   = CELL_H + #EQUIPMENT_ORDER * GEAR_CELL_H + SEC_PAD * 2,
 	Vault  = 3 * CELL_H + SEC_PAD * 2,
-	Gold   = CELL_H + SEC_PAD * 2,
+	Gold   = GOLD_LINE * CELL_H + SEC_PAD * 2,
 }
 
 local SLOT_NAMES = {
@@ -369,8 +376,20 @@ function ColMixin:Init()
 	self.Name = addLabel(Header, fonts.header, '', COL_WIDTH - (ICON_SIZE + PADDING * 2) * 2, Header, 'CENTER', 'TOP', 0, -HEADER_H / 2)
 
 	-- Texts
-	self.ILvl         = addLabel(Gear, fonts.body, '', CELL_WIDTH, Gear, 'LEFT', 'TOPLEFT', PADDING, cellY(ILVL_ROW))
-	self.Gold         = addLabel(Gold, fonts.body, '', CELL_WIDTH, Gold, 'LEFT', 'TOPLEFT', PADDING, cellY(1))
+	self.ILvl = addLabel(Gear, fonts.body, '', CELL_WIDTH, Gear, 'LEFT', 'TOPLEFT', PADDING, cellY(ILVL_ROW))
+	self.Gold = addLabel(Gold, fonts.body, '', CELL_WIDTH, Gold, 'LEFT', 'TOPLEFT', PADDING, cellY(GOLD_LINE))
+	self.Gold:SetJustifyH('LEFT')
+
+	self.currencyCells = {}
+	local currencyWidth = CELL_WIDTH / 2
+	for line, ids in ipairs(CURRENCY_ROWS) do
+		for i, id in ipairs(ids) do
+			local Text = addLabel(Gold, fonts.body, '', currencyWidth, Gold, 'LEFT', 'TOPLEFT', PADDING + (i - 1) * currencyWidth, cellY(line))
+			Text:SetJustifyH('LEFT')
+			self.currencyCells[id] = Text
+		end
+	end
+
 	self.vaultCells = {}
 	for line, key in ipairs(VAULT_KEYS) do
 		local cells = {}
@@ -414,6 +433,29 @@ function ColMixin:Init()
 	self.initialized = true
 end
 
+---@param c table?
+---@return string
+local function formatCurrency(c)
+	if not c then return '' end
+
+	local text
+	if c.max and c.max > 0 then
+		text = string.format('%d/%d (%d)', c.earned or 0, c.max, c.quantity or 0)
+	else
+		text = tostring(c.quantity or 0)
+	end
+	if c.icon then text = '|T' .. c.icon .. ':12|t' .. text end
+	return text
+end
+
+---@param Col CharacterCol
+local function refreshCurrencies(Col)
+	local saved = Col.data.currencies
+	for id, Text in pairs(Col.currencyCells) do
+		Text:SetText(formatCurrency(saved and saved[id]))
+	end
+end
+
 ---@param name string
 ---@param data CharacterData
 ---@return CharacterCol
@@ -431,6 +473,7 @@ function simpleAlts.AcquireCol(name, data)
 
 	Col.Name:SetText(data.name or name)
 	refreshGold(Col)
+	refreshCurrencies(Col)
 	refreshGear(Col)
 	refreshVault(Col)
 	refreshRaids(Col)
@@ -480,7 +523,8 @@ function simpleAlts.LayoutLabelColumn(Parent)
 	addRowLabel(Vault, 'Raid', 1)
 	addRowLabel(Vault, 'Dungeons', 2)
 	addRowLabel(Vault, 'World', 3)
-	addRowLabel(Gold, 'Gold', 1)
+	addRowLabel(Gold, 'Currencies', 1)
+	addRowLabel(Gold, 'Gold', GOLD_LINE)
 
 	return LabelColumn
 end
@@ -524,12 +568,15 @@ function simpleAlts.RefreshCol(name, field)
 		refreshVault(Col)
 	elseif field == 'raids' then
 		refreshRaids(Col)
+	elseif field == 'currencies' then
+		refreshCurrencies(Col)
 	end
 end
 
 function simpleAlts.RefreshAll()
 	for _, Col in pairs(cols) do
 		refreshGold(Col)
+		refreshCurrencies(Col)
 		refreshGear(Col)
 		refreshVault(Col)
 		refreshRaids(Col)

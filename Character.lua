@@ -9,6 +9,7 @@ local VAULT_TYPES = {
 local ENCHANTABLE       = {[1] = true, [3] = true, [5] = true, [7] = true, [8] = true, [11] = true, [12] = true, [16] = true}
 local CRAFTED_TRACK     = {[13835] = 'Hero', [13836] = 'Myth'}
 local RAID_DIFFICULTIES = {15, 16, 233}
+local CURRENCIES        = {3418, 3509, 3442, 3443, 3444, 3445, 3446,}
 
 local data, fullName
 
@@ -63,6 +64,25 @@ local function updateGold()
 
   data.gold = GetMoney()
   simpleAlts.RefreshCol(fullName, 'gold')
+end
+
+local function updateCurrencies()
+  if not data then return end
+
+  data.currencies = data.currencies or {}
+  for _, id in ipairs(CURRENCIES) do
+    local info = C_CurrencyInfo.GetCurrencyInfo(id)
+    if info then
+      data.currencies[id] = {
+        quantity = info.quantity,
+        earned   = info.totalEarned,
+        max      = info.maxQuantity,
+        icon     = info.iconFileID,
+      }
+    end
+  end
+
+  simpleAlts.RefreshCol(fullName, 'currencies')
 end
 
 local function updateGear()
@@ -177,15 +197,16 @@ local function initCharacter(_, isLogin, isReload)
   if isNew then
     SimpleAltsDB.numChars = SimpleAltsDB.numChars + 1
     SimpleAltsDB.characters[fullName] = {
-      name  = coloredName,
-      index = SimpleAltsDB.numChars,
-      ilvl  = 0,
-      gold  = 0,
-      equip = {},
-      vault = {},
-      raids = {},
-      warn  = {},
-      ilvls = {},
+      name       = coloredName,
+      index      = SimpleAltsDB.numChars,
+      ilvl       = 0,
+      gold       = 0,
+      equip      = {},
+      vault      = {},
+      raids      = {},
+      warn       = {},
+      ilvls      = {},
+      currencies = {},
     }
   end
 
@@ -193,6 +214,7 @@ local function initCharacter(_, isLogin, isReload)
   checkWeeklyReset()
 
   updateGold()
+  updateCurrencies()
   updateGear()
   updateVault()
   RequestRaidInfo()
@@ -210,6 +232,7 @@ end
 
 simpleAlts.RegisterEventHandler('PLAYER_ENTERING_WORLD', initCharacter)
 simpleAlts.RegisterEventHandler('PLAYER_MONEY', updateGold)
+simpleAlts.RegisterEventHandler('CURRENCY_DISPLAY_UPDATE', updateCurrencies)
 simpleAlts.RegisterEventHandler('PLAYER_EQUIPMENT_CHANGED', updateGear)
 simpleAlts.RegisterEventHandler('UNIT_INVENTORY_CHANGED', updateGear)
 simpleAlts.RegisterEventHandler('PLAYER_AVG_ITEM_LEVEL_UPDATE', updateGear)
