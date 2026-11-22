@@ -9,7 +9,10 @@ local VAULT_TYPES = {
 local ENCHANTABLE       = {[1] = true, [3] = true, [5] = true, [7] = true, [8] = true, [11] = true, [12] = true, [16] = true}
 local CRAFTED_TRACK     = {[13835] = 'Hero', [13836] = 'Myth'}
 local RAID_DIFFICULTIES = {15, 16, 233}
-local CURRENCIES        = {3418, 3509, 3442, 3443, 3444, 3445, 3446,}
+local CURRENCIES        = {3418, 3509, 3442, 3443, 3444, 3445, 3446}
+local CURRENCY_ITEMS    = {
+  [3509] = 274476,
+}
 
 local data, fullName
 
@@ -73,8 +76,9 @@ local function updateCurrencies()
   for _, id in ipairs(CURRENCIES) do
     local info = C_CurrencyInfo.GetCurrencyInfo(id)
     if info then
+      local itemId = CURRENCY_ITEMS[id]
       data.currencies[id] = {
-        quantity = info.quantity,
+        quantity = itemId and C_Item.GetItemCount(itemId) or info.quantity,
         earned   = info.totalEarned,
         max      = info.maxQuantity,
         icon     = info.iconFileID,
@@ -233,9 +237,10 @@ end
 simpleAlts.RegisterEventHandler('PLAYER_ENTERING_WORLD', initCharacter)
 simpleAlts.RegisterEventHandler('PLAYER_MONEY', updateGold)
 simpleAlts.RegisterEventHandler('CURRENCY_DISPLAY_UPDATE', updateCurrencies)
+simpleAlts.RegisterEventHandler('BAG_UPDATE_DELAYED', updateCurrencies)
 simpleAlts.RegisterEventHandler('PLAYER_EQUIPMENT_CHANGED', updateGear)
 simpleAlts.RegisterEventHandler('UNIT_INVENTORY_CHANGED', updateGear)
 simpleAlts.RegisterEventHandler('PLAYER_AVG_ITEM_LEVEL_UPDATE', updateGear)
 simpleAlts.RegisterEventHandler('WEEKLY_REWARDS_UPDATE', updateVault)
-simpleAlts.RegisterEventHandler('ENCOUNTER_END', onEncounterEnd)
 simpleAlts.RegisterEventHandler('UPDATE_INSTANCE_INFO', updateRaids)
+simpleAlts.RegisterEventHandler('ENCOUNTER_END', onEncounterEnd)
